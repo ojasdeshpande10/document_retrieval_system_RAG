@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Article Processing</title>
+    <style>
+        body {
+          font-family: sans-serif;
+          margin: 2rem;
+        }
+      
+        h1 {
+          text-align: center;
+          margin-bottom: 1rem;
+        }
+      
+        input[type="text"] {
+          padding: 0.5rem;
+          border: 1px solid #ccc;
+          margin-bottom: 1rem;
+          width: 100%;
+        }
+      
+        button {
+          padding: 0.75rem 1rem;
+          background-color: #4CAF50;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          margin-right: 1rem;
+          cursor: pointer;
+        }
+      
+        #answer {
+          font-weight: bold;
+          margin-top: 1rem;
+        }
+      </style>
+</head>
+<body>
+    <h1>Process Medium Article</h1>
+    <input type="text" id="articleUrl" placeholder="Enter Article URL">
+    <input type="text" id="documentId" placeholder="Enter Document ID">
+    <input type="text" id="question" placeholder="Enter your question">
+    <button onclick="processArticle()">Embed My document</button>
+    <button onclick="getAnswer()">Get Answer</button>
+    <div id="answer">Answer will appear here</div>
+
+    <script>
+        async function processArticle() {
+            const url = document.getElementById('articleUrl').value;
+            const documentId = document.getElementById('documentId').value;
+            const apiUrl = 'http://127.0.0.1:8000/process_article/';
+
+            try {
+                const articleResponse = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+                const articleData = await articleResponse.json();
+
+                if (articleResponse.ok) {
+                    console.log('Article processed:', articleData);
+                    const textProcessingUrl = 'http://127.0.0.1:8000/process_text/';
+                    const textResponse = await fetch(textProcessingUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text: articleData.text, id: documentId })
+                    });
+                    const textData = await textResponse.json();
+                    console.log('Text processed:', textData);
+                } else {
+                    console.error('Failed to process article:', articleData);
+                }
+            } catch (error) {
+                console.error('Error processing article:', error);
+            }
+        }
+
+        async function getAnswer() {
+            const question = document.getElementById('question').value;
+            const answerUrl = 'http://127.0.0.1:8100/generate_answer/';
+
+            try {
+                const response = await fetch(answerUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: question })
+                });
+                const answerData = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('answer').textContent = 'Answer: ' + answerData.answer;
+                } else {
+                    console.error('Failed to retrieve answer:', answerData);
+                    document.getElementById('answer').textContent = 'Failed to retrieve answer';
+                }
+            } catch (error) {
+                console.error('Error retrieving answer:', error);
+                document.getElementById('answer').textContent = 'Error retrieving answer';
+            }
+        }
+    </script>
+</body>
+</html>

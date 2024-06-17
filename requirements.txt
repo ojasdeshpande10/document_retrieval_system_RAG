@@ -1,0 +1,7 @@
+fastapi==0.68.0
+uvicorn==0.15.0
+requests==2.25.1
+beautifulsoup4==4.9.3
+faiss-cpu==1.7.1.post2
+numpy==1.19.5
+pydantic==1.8.2
